@@ -79,14 +79,6 @@ class Car:
         except (EngineIsNotRunning, DriverNotFoundError) as e:
             print(f"Машина не может поехать, т.к. {e}")
 
-    # def set_driver(self, driver: Driver):
-    #     if not isinstance(driver, Driver):
-    #         raise DriverTypeError(f"Ожидается тип {Driver}, получен {type(driver)}")
-    #     self.__driver = driver
-    #
-    # def get_driver(self):
-    #     return self.__driver
-
     @property
     def driver(self):
         return self.__driver
@@ -129,7 +121,6 @@ if __name__ == '__main__':
     #
     # print(honda1.brand)
 
-
     # print(car.brand)
     # print(car_2.brand)
     # Car.change_brand("Nissan")
@@ -147,6 +138,7 @@ if __name__ == '__main__':
 
     # Блок работы с защищёнными методами
     # car.start_engine()
+    # car.driver = Driver('Иван')
     # car.driver = Driver('Иван')
     # # Блок работы с методами
     # car.move()
