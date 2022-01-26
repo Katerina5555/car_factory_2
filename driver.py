@@ -40,6 +40,23 @@ class Driver:
         self._set_max_noob_time_behind_wheel()   # установка максимального времени за рулем для неопытных
                                                  # в _max_noob_time_behind_wheel
 
+    @property
+    def dist_limit(self) -> [int, float]:
+        """возвращает ограничение дистанции без отдыха в км"""
+        return self._dist_limit
+
+    @dist_limit.setter
+    def dist_limit(self, new_value: [int, float]) -> None:
+        """
+        Установка нового значения ограничения дистанции без отдыха для водителя
+        :param new_value: новое значение в км
+        """
+        if not isinstance(new_value, (int, float)):
+            raise TypeError('Задайте расстояние числовым значением (в км)')
+        if new_value <= 1:
+            raise ValueError('Все время отдыхать - заработать ожирение! Проверьте вводимые значения!')
+        self._dist_limit = new_value
+
     def _set_max_time_behind_wheel(self, new_value: int = 360) -> None:
         """
         Установка максимальнгого времени за рулем для всех (без отдыха)
@@ -225,9 +242,13 @@ class Driver:
 
 if __name__ == '__main__':
     driver_vasya = Driver("Василий", 56, 'М', "01.10.2000")
-    driver_ivan = Driver("Иван", 14)
+    #driver_ivan = Driver("Иван", 14)
 
     print(driver_vasya)
     print(driver_vasya.get_max_time_in_move())
+
     print(driver_vasya.experience)
-    print(driver_ivan)
+
+
+
+   # print(driver_ivan)

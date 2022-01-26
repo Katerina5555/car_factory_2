@@ -175,7 +175,7 @@ class Car:
         if self.driver.get_max_allowed_speed() > (dist / (m_time / 60)):
             print(f"Вы превышаете максимально разрешенную скрость! "
                   f"Ваше ограничение {self.driver.get_max_allowed_speed()} км/ч")
-        if self.driver.dist_limit >= dist:
+        if self.driver.dist_limit % dist == 0:
             print(f"Ограничение по пройденной дистанции без отдыха! Отдохните! "
                   f"P.S. Ваше ограничение {self.driver.dist_limit} км")
 
