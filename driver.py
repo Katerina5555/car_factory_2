@@ -19,7 +19,7 @@ class Driver:
         self.rules = rules
         self.experience = experience
 
-        #  установка "начальных значений
+        #  установка "начальных" значений
 
         self._set_max_allowed_speed_in_counry()  # установка в self._max_country_speed
                                                  # максимально допустимой скорости в стране
