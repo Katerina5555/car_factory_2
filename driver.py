@@ -12,12 +12,20 @@ class Driver:
     MAX_MOVE_TIME = 360      # максимальная время в пути для любого водителя без перерыва 4 ч
 
     def __init__(self, name, age: int, rules: Optional[Categories] = None,
-                 experience: datetime = datetime.datetime.now()):
+                 experience: datetime = datetime.datetime.now(), dist_limit: int = 20):
+        """
+        :param name: Имя водителя
+        :param age: возраст (в годах)
+        :param rules: наличие ВУ (объект класса Categories)
+        :param experience: наличие стажа (дата выдачи ВУ)
+        :param dist_limit: ограничение на максимальное расстояние без отдыха
+        """
 
         self.name = name
         self.age = age
         self.rules = rules
         self.experience = experience
+        self.dist_limit = dist_limit
 
         #  установка "начальных" значений
 

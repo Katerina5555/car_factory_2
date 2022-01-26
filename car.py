@@ -63,13 +63,13 @@ class Car:
         self.__created_time = time.time()
         self.__mileage = 0
 
-        self.__status_engine = False  # состояние двигателя (запущен / выключен)
-        self.__driver = None  # наличие водителя в ТС
-        self.__last_to = 0  # пробег на котором было сделано последнее ТО
-        self.__service_interval = 30  # необходимая частота ТО
+        self.__status_engine = False              # состояние двигателя (запущен / выключен)
+        self.__driver = None                      # наличие водителя в ТС
+        self.__last_to = 0                        # пробег на котором было сделано последнее ТО
+        self.__service_interval = 30              # необходимая частота ТО
 
-        self.car_key = None  # ключ который хранится в машине, и сверяется с ключом водителя
-        self.__keys_was_send = False  # переменная которая проверяет выдавались ли ключи
+        self.car_key = None                       # ключ который хранится в машине, и сверяется с ключом водителя
+        self.__keys_was_send = False              # переменная которая проверяет выдавались ли ключи
         self.__object_category = object_category  # категортия ТС для определения прав
 
     def __new__(cls, *args, **kwargs):
@@ -163,6 +163,22 @@ class Car:
             print('Ключи не подходят')
             return False
 
+    def __check_limitations(self, m_time: [int, float], dist: int) -> None:
+        """
+        Проверка текущей поездки на ограничения водителя
+        :param m_time: время в пути в минутах
+        :param dist: пройденный путь в км
+        """
+        if self.driver.get_max_time_in_move() <= m_time:
+            print(f"Ограничение по времени прибывания за рулем! Срочно отдохните! "
+                  f"P.S. Ваше ограничение {self.driver.get_max_time_in_move() / 60} часа")
+        if self.driver.get_max_allowed_speed() > (dist / (m_time / 60)):
+            print(f"Вы превышаете максимально разрешенную скрость! "
+                  f"Ваше ограничение {self.driver.get_max_allowed_speed()} км/ч")
+        if self.driver.dist_limit >= dist:
+            print(f"Ограничение по пройденной дистанции без отдыха! Отдохните! "
+                  f"P.S. Ваше ограничение {self.driver.dist_limit} км")
+
     def move(self, distance: int = 10) -> None:
         """
         функция движения
@@ -170,22 +186,24 @@ class Car:
         """
         try:
             if self.__is_ready_move():
+                st_time = datetime.datetime.now()
                 for i in range(distance):
                     if self.check_technical_discussion():
                         self.move_direction(random.randint(0, 10))
-                        print(f'Машина проехала {i + 1} км.')
+                        print(f'Машина проехала {i + 1} км.', end='')
                         self.__mileage += 1
                         time.sleep(0.1)
+                        self.__check_limitations((st_time - datetime.datetime.now()).total_seconds() / 60, i)
 
-                        if self.__mileage % 20 == 0:
-                            a = 3
-                            print(f'Вам необходимо отдохнуть. Вы можете продолжить движение через {a} минут(ы)')
-                            time.sleep(a)
+                        # if self.__mileage % 20 == 0:
+                        #     a = 3
+                        #     print(f'Вам необходимо отдохнуть. Вы можете продолжить движение через {a} минут(ы)')
+                        #     time.sleep(a)
 
                     else:
                         raise DoTechnicalDiscussion("Срочно необходимо сделать ТО")
             print('Машина проехала указанный путь')
-        except (EngineIsNotRunning, DriverNotFoundError) as e:
+        except (EngineIsNotRunning, DriverNotFoundError, DriverNoRules) as e:
             print(f"Машина не может поехать, т.к. {e}")
 
     @staticmethod
@@ -280,11 +298,3 @@ if __name__ == '__main__':
     # driver_key = car.get_keys()
     # car.start_engine(driver_key)
 
-    start_time = datetime.time(15, 47, 0, 0)
-    while True:
-        a = datetime.datetime.now().time()
-        print(a)
-        print(start_time)
-        if a > start_time:
-            print(car.autostart_engine())
-            break
