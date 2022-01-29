@@ -1,25 +1,17 @@
 from rules import Categories
-from typing import Optional
-
 
 class Driver:
-    def __init__(self, name, age: int, rules: Optional[Categories] = None):
+    def __init__(self, name: str, experience: int,  age: int, rules: Categories.category = None):
         self.name = name
+        self.experience = experience
         self.age = age
         self.rules = rules
 
-    @property
-    def age(self):
-        return self._age
+    def experience(self, experience: int):
+        return self.experience
 
-    @age.setter
     def age(self, age: int):
-        if not isinstance(age, int):
-            raise TypeError('Задайте возраст целочисленным значением')
-        if age < 0:
-            raise ValueError("Возраст должен иметь положительное значение!")
-        self._age = age
-
+        return self.age
     @property
     def rules(self):
         return self._rules
@@ -32,17 +24,22 @@ class Driver:
             self._rules = None
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.name},{self.age},{self.rules})"
+        return f"{self.__class__.__name__}({self.name}, {self.experience}, {self.age}" \
+               f"{self.rules.category}))"
 
     def __str__(self):
-        return f"Водитель {self.name}, возраст {self.age}, права {self.rules}"
+        return f"Водитель {self.name}, стаж вождения {self.experience} лет, возраст {self.age}," \
+               f" права категории {self.rules.category}"
+
+
 
 
 if __name__ == '__main__':
-    driver_vasya = Driver("Василий", 18)
-    driver_ivan = Driver("Иван", 14)
+
+
+    driver_vasya = Driver("Василий", 20, 25, "B")
+    driver_ivan = Driver("Иван", 25, 29, "B")
+
 
     print(driver_vasya)
     print(driver_ivan)
-
-

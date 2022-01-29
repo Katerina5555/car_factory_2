@@ -33,12 +33,13 @@ class DriverNoRules(Exception):
 
 
 class Car:
-    brand = None
-    _max_speed = 180
-    __created_car = 0
+    brand = None   #публичный
+    _max_speed = 180    #защищенный
+    __created_car = 0   #приватный
 
-    def __init__(self, engine_type=None, body_type=None, gear_type=None,
-                 drive_type=None, configuration=None, color=None, object_category=None):
+    def __init__(self, engine_type=None, body_type=None, gear_type=None, drive_type=None,
+                 configuration=None, color=None, object_category=None):
+        """создание атрибутов класса машина"""
 
         self.__body_type = body_type
         self._engine_type = engine_type
@@ -62,48 +63,26 @@ class Car:
 
     def __new__(cls, *args, **kwargs):
         cls.__append_new_car_counter()
-        print(f"Создано {cls.__created_car} машина класса {cls.__name__}")
+        print(f"Создано {cls.__created_car} класса {cls.__name__}")
         return super().__new__(cls)
+
+    """создание методов класса"""
 
     @classmethod
     def change_brand(cls, new_brand):
+        """Изменение наименования Брэнда"""
         cls.brand = new_brand
 
     @classmethod
-    def _set_max_speed(cls, max_speed):
+    def set_max_speed(cls, max_speed) -> int:
+        """Возможность изменения максимальной скорости"""
         if not isinstance(max_speed, (int, float)):
-            raise TypeError(
-                f'Ожидается тип {int} или {float}, получен {type(max_speed)}')
+            raise TypeError(f'Ожидается тип {int} или {float}, получен {type(max_speed)}')
         cls._max_speed = max_speed
 
     @classmethod
     def __append_new_car_counter(cls):
         cls.__created_car += 1
-
-    def start_engine(self, key):
-        if self.__check_keys(key):
-            self.__status_engine = True
-            print('Машина завелась')
-        else:
-            print('Крутится стартер')
-
-    def __is_ready_move(self):
-        if not self.__status_engine:
-            raise EngineIsNotRunning("двигатель не запущен")
-        if self.__driver is None:
-            raise DriverNotFoundError("водитель не найден")
-
-        return True
-
-    # def __is_ready_move(self):
-    #     if not self.__status_engine:
-    #         raise EngineIsNotRunning("двигатель не запущен")
-    #     if self.__driver is None:
-    #         raise DriverNotFoundError("водитель не найден")
-    #     if self.driver.rules is None:
-    #         raise DriverNoRules("без прав нельзя!")
-    #     if self.__object_category != self.driver.rules:
-    #         raise DriverNoRules("права водителя не подходят для этого ТС!")
 
     def __create_keys(self):
         h = hashlib.new('sha256')
@@ -127,67 +106,102 @@ class Car:
             print('Ключи не подходят')
             return False
 
-    def move(self, distance=10):
-        try:
-            if self.__is_ready_move():
-                for i in range(distance):
-                    if self.check_technical_discussion():
-                        self.move_direction(random.randint(0, 10))
-                        print(f'Машина проехала {i + 1} км.')
-                        self.__mileage += 1
-                        time.sleep(0.1)
+    def start_engine(self, key):
+        if self.__check_keys(key):
+            self.__status_engine = True
+            print('Машина завелась')
+        else:
+            print('Крутится стартер')
 
-                        if self.__mileage % 20 == 0:
-                            a = 3
-                            print(f'Вам необходимо отдохнуть. Вы можете продолжить движение через {a} минут(ы)')
-                            time.sleep(a)
+    def __is_ready_to_move(self):
+        """Проверка готовности машины к движению - запущен ли двигатель"""
 
-                    else:
-                         raise DoTechnicalDiscussion("Срочно необходимо сделать ТО")
-            print('Машина проехала указанный путь')
-        except (EngineIsNotRunning, DriverNotFoundError) as e:
-            print(f"Машина не может поехать, т.к. {e}")
+        if not self.__status_engine:
+            raise EngineIsNotRunning("Двигатель не запущен")
 
+        if self.__driver is None:
+            raise DriverNotFoundError("Водитель не найден")
+        return True
 
-    @staticmethod
-    def move_direction(direction):
-        direction_dict = {0: "прямо", 1: "налево", 2: "направо", 3: "разворот"}
-        print(f"Автомобиль выполняет движение: {direction_dict.get(direction, 'прямо')}")
+    def max_time_on_the_way(self) -> int:
+        """Расчет максимального времени в пути:
+        1) проверка типа стажа вождения
+        2) проверка правильности заведенных данных по стажу вождения
+        3) проверка соответствия стажа возрасту Водителя"""
+        if not isinstance(self.driver.experience, int):
+            raise TypeError('Задайте опыт целочисленным значением')
+        elif int(self.driver.experience) < 0:
+            raise ValueError("Cтаж может иметь только целочисленное значение")
+        elif (self.driver.age - self.driver.experience) < 18:
+            raise ValueError("Стаж не соответствует возрасту, права получены ранее 18 лет")
+        elif self.driver.experience < 10:
+            max_no_sleep = 5    # установлено 10 минут, чтобы долго не жждать результата
+        else:
+            max_no_sleep = 9
 
-    @property
-    def driver(self):
-        return self.__driver
+        return max_no_sleep
 
-    @driver.setter
-    def driver(self, driver: Driver):
-        if not isinstance(driver, Driver):
-            raise DriverTypeError(
-                f"Ожидается тип {Driver}, получен {type(driver)}")
-        self.__driver = driver
+    def speed_limit(self) -> int:
+        """
+        Вспомогательный расчет максимальной скорости для водителя по стажу вождения
+        """
+        if self.driver.experience < 10:
+            max_speed = 100
+        else:
+            max_speed = self._max_speed
+        return max_speed
 
-    def get_mileage(self):
-        return self.__mileage
+    def time_to_stop(self, start_mile):
+        """
+        Расчет максимального километража без отдыха для конкретного водителя
+        """
+        max_on_the_way = int(self.speed_limit()*(self.max_time_on_the_way() / 60))
 
-    def _set_mileage(self, mileage):
-        if not isinstance(mileage, (int, float)):
-            raise TypeError(
-                f'Ожидается тип {int} или {float}, получен {type(mileage)}')
-        self.__mileage = mileage
+        """
+        Предупреждение о предстоящей остановке и инфо после
+        """
+
+        if (self.__mileage - start_mile) % max_on_the_way - (max_on_the_way // 4 * 3) == 0 and self.__mileage != 0:     #поставлено из длины пути. каждый километр повторять - отвлекает
+                b = max_on_the_way - (self.__mileage -start_mile) % max_on_the_way
+                print(f'Через {b} км машина вынужденно остановится. '
+                f'Необходимо найти место для остановки')
+
+        elif (self.__mileage - start_mile) % max_on_the_way == 0 and self.__mileage != start_mile:
+                a = 2
+                print(f'Вам необходимо отдохнуть. '
+                    f'Вы можете продолжить движение через {a} минут(ы). '
+                      f'Согласно регламента Вы можете двигаться без остановки {self.max_time_on_the_way()} минут, '
+                      f'при текущей скорости ({self.speed_limit()} км/ч) - это {max_on_the_way} км.')
+                time.sleep(a)
 
     def check_technical_discussion(self) -> bool:
-        if self.__mileage - self.__last_to == 40:
+        """Проверка необходимости прохождения ТОЖ
+         1) если ТО сделано 40 и более к назад - машина не поедет без метода
+         do_technical_discussion
+         2) за 10 км - предупреждение о необходимости прохождения ТО
+         3) через 30 - вопрос о том пройдено ТО или нет.
+         при любом ответе, кроме Да - машина не продолжит движение"""
+        if self.__mileage - self.__last_to >= 40:
             return False
         elif self.__mileage - self.__last_to == 20:
             print(f"Необходимо сделать ТО через 10 км")
         elif self.__mileage - self.__last_to == self.__service_interval:
-            print(f"Сейчас необходимо сделать ТО")
+            inspection_completed = input("Сейчас необходимо сделать ТО. ТО пройден?")
+            if inspection_completed == "да":
+                self.do_technical_discussion()
+                print(f"ТО произведено")
+            else:
+                raise DoTechnicalDiscussion
         return True
 
     def do_technical_discussion(self):
+        """Проходждение ТО"""
         self.__last_to = self.__mileage
         print("Очередное ТО пройден")
 
     def autostart_engine(self):
+        """Проверка запущен ли двигатель
+        Запуск двигателя при отрицательном ответе"""
         if not self.__status_engine:
             self.__status_engine = True
             return True
@@ -195,27 +209,141 @@ class Car:
             EngineIsRunning("двигатель уже запущен")
             return False
 
+    @staticmethod
+    def move_direction(direction):
+        direction_dict = {0: "прямо", 1: "налево", 2: "направо", 3: "разворот"}
+        print(f"Автомобиль выполняет движение: {direction_dict.get(direction, 'прямо')}")
+
+    def move(self, distance: Union[int, float]):
+        """Движение:
+        :param distance - дистанция планируемого движения
+        1) текущий километраж назначается стартовым
+        2) проверка готовности машины к движению
+        2.1 проверка прохождения ТО
+        2.2 направление движения
+        2.3 проврека необходимости остановки
+        2.4 подсчет пройденного пути
+        3) при невозможности движения ошибки (отсутствие водителя,
+        не запущен двигатель, не пройдено ТО)"""
+        try:
+            start_mile = self.get_mileage()
+            if self.__is_ready_to_move():
+
+                for i in range(distance):
+                    if self.check_technical_discussion():
+                        self.move_direction(random.randint(0, 10))
+                        self.time_to_stop(start_mile)
+
+                        print(f"Машина проехала {start_mile + i + 1} км")
+                        self.__mileage += 1
+                        time.sleep(0.3)
+
+                    else:
+                        raise DoTechnicalDiscussion("Срочно необходимо сделать ТО, "
+                                                    "Автомобиль не может продолжить движение")
+
+            print("Машина проехала указанный путь")
+            print(f"Вы начали свой путь с пробегом {start_mile} км")
+        except(EngineIsNotRunning, DriverNotFoundError) as e:
+            print(f"Машина не может ехать, т.к. {e}")
+
+    #  вывод и добалвение через геттер и сеттер
+    # def set_driver(self, driver: Driver):
+    #     if not isinstance(driver, Driver):
+    #         raise DriverTypeError(f"Ожидается тип {Driver}, "
+    #                               f"получен {type(driver)}")
+    #     self.__driver = driver
+    #
+    # def get_driver(self):
+    #     return self.__driver
+
+    """получение и установка через свойства. вместо геттера и сеттера"""
+    @property
+    def driver(self):
+        return self.__driver
+
+    @driver.setter
+    def driver(self, driver: Driver):
+
+        if not isinstance(driver, Driver):
+            raise DriverTypeError(f"Ожидается тип {Driver}, "
+                              f"получен {type(driver)}")
+        self.__driver = driver
+
+    def get_mileage(self):
+        """Возвращает значение пройденного пути"""
+        return self.__mileage
+
+    def _set_mileage(self, mileage: Union[int, float]):
+        """установка пройденного километража и проверка на соответствие типа данных"""
+        if not isinstance(mileage, (int, float)):
+            raise TypeError(f"Ожидается тип данных {int} или {float}, получен {type(mileage)}")
+        self.__mileage = mileage
+
+    @staticmethod
+    def miles_to_km(mile_count: Union[int, float]) -> Union[int, float]:
+        """Перевод миль в километры"""
+        return mile_count * 1.609
+
 
 class Honda(Car):
     brand = "Honda"
     __created_car = 0
 
     def __init__(self):
-
         super().__init__()
 
 
 if __name__ == '__main__':
-    # pass
-    car = Car('бензин', 'седан', 'автомат', 'полный', 'люкс', 'белый')
-    # driver_key = car.get_keys()
-    # car.start_engine(driver_key)
+    # print(Car().miles_to_km(40))
+    #
+    #
+    car = Car("бензин", "седан", "автомат", "полный", "люкс", "белый")
+    # car_2 = Car("бензин", "седан", "автомат", "полный", "люкс", "черный")
+    # honda = Honda("бензин", "седан", "автомат", "полный", "люкс", "белый")
+    # honda_2 = Honda("бензин", "седан", "автомат", "полный", "люкс", "черный")
 
-    start_time = datetime.time(15, 47, 0, 0)
-    while True:
-        a = datetime.datetime.now().time()
-        print(a)
-        print(start_time)
-        if a > start_time:
-            print(car.autostart_engine())
-            break
+
+    # print(car.brand)
+    # print(car_2.brand)
+    # Car.change_brand("Mitsubishi")
+    # print(car.brand)
+    # print(car_2.brand)
+    #
+    # print(car._max_speed)
+    # print(car_2._max_speed)
+    # Car.set_max_speed(200)
+    # print(car._max_speed)
+    # print(car_2._max_speed)
+    #
+    #блок работы с защищенными методами
+    driver_key = car.get_keys()
+    # car.do_technical_discussion()
+    car.start_engine(driver_key)
+    car.driver = Driver("Иван", 25, 45, "B")
+    print(car.driver)
+
+    # блок методов экземпляра
+
+    car._set_mileage(20)
+    car.move(45)
+    print(car.get_mileage())
+    # car.move()
+    # print(car)
+    # print(car.get_mileage())
+
+    # car._set_mileage(30)
+    # print(car.get_mileage())
+    # car.move()
+    # print(car.get_mileage())
+    # car._set_mileage(10)
+
+    #блок сеттеров
+    # для чистого геттера и сеттера
+    # car.set_driver(Driver("Иван"))
+    # print(car.get_driver())
+
+
+
+
+

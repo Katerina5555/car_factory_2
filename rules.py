@@ -1,3 +1,4 @@
+
 class Categories:
     __CAT = {'A': 18,    # Мотоциклы
              "A1": 16,   # Легкие мотоциклы
@@ -69,15 +70,10 @@ class Rules:
 
     def __init__(self, category: str):
 
-        self.category = Categories(driver.age, category)
+        self.category = Categories(self.driver.age, category)
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self.driver},{self.category})'
 
     def __str__(self):
         return f'Водитель {self.driver.name}, возраст - {self.driver.age}, категория {self.category}'
-
-
-
-
-
